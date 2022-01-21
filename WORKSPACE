@@ -5,12 +5,16 @@ workspace(
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
-# Fetch rules_nodejs so we can install our npm dependencies
+# Fetch rules_nodejs and install its dependencies so we can install our npm dependencies.
 http_archive(
     name = "build_bazel_rules_nodejs",
     sha256 = "6b951612ce13738516398a8057899394e2b7a779be91e1a68f75f25c0a938864",
     urls = ["https://github.com/bazelbuild/rules_nodejs/releases/download/5.0.0/rules_nodejs-5.0.0.tar.gz"],
 )
+
+load("@build_bazel_rules_nodejs//:repositories.bzl", "build_bazel_rules_nodejs_dependencies")
+
+build_bazel_rules_nodejs_dependencies()
 
 # The PKG rules are needed to build tar packages for integration tests. The builtin
 # rule in `@bazel_tools` is not Windows compatible and outdated.
@@ -23,17 +27,14 @@ http_archive(
     ],
 )
 
-# Check the rules_nodejs version and download npm dependencies
+# Download npm dependencies.
 # Note: bazel (version 2 and after) will check the .bazelversion file so we don't need to
 # assert on that.
-load("@build_bazel_rules_nodejs//:index.bzl", "check_rules_nodejs_version", "node_repositories", "yarn_install")
-
-check_rules_nodejs_version(minimum_version_string = "2.2.0")
+load("@build_bazel_rules_nodejs//:index.bzl", "node_repositories", "yarn_install")
 
 # Setup the Node.js toolchain
 node_repositories(
     node_version = "16.10.0",
-    package_json = ["//:package.json"],
 )
 
 load("//integration:npm_package_archives.bzl", "npm_package_archives")
